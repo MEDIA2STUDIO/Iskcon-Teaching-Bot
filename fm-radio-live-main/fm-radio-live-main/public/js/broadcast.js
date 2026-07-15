@@ -1,3 +1,7 @@
+function toggleMobileMenu() {
+  document.querySelector('.nav-links').classList.toggle('active');
+}
+
 /* ========== STATE ========== */
 let ws = null;
 let mediaStream = null;

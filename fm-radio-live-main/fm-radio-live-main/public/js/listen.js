@@ -1,9 +1,16 @@
+function toggleMobileMenu() {
+  document.querySelector('.nav-links').classList.toggle('active');
+}
+
 let audioContext = null;
 let audioQueue = [];
 let isPlaying = false;
 let nextPlayTime = 0;
 let currentBroadcasterId = null;
 let wsConnection = null;
+let reconnectTimer = null;
+let lastAudioTime = 0;
+let audioSilenceTimer = null;
 
 async function init() {
   await loadBroadcasters();
@@ -15,10 +22,18 @@ async function init() {
   }
 
   setInterval(loadBroadcasters, 5000);
+  checkAudioContext();
+}
+
+function checkAudioContext() {
+  setInterval(() => {
+    if (audioContext && audioContext.state === 'suspended') {
+      audioContext.resume();
+    }
+  }, 2000);
 }
 
 async function loadBroadcasters() {
-  // Don't rebuild list while listening (player is active)
   if (currentBroadcasterId) {
     return;
   }
@@ -57,13 +72,21 @@ async function loadBroadcasters() {
   }
 }
 
+async function ensureAudioContext() {
+  if (!audioContext) {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioContext.state === 'suspended') {
+    await audioContext.resume();
+  }
+  return audioContext;
+}
+
 async function listenToBroadcaster(broadcasterId) {
-  // Prevent duplicate WebSocket to same broadcaster
   if (currentBroadcasterId === broadcasterId) {
     return;
   }
 
-  // Close existing connection before creating a new one
   if (currentBroadcasterId) {
     stopListening(currentBroadcasterId);
   }
@@ -84,10 +107,11 @@ async function listenToBroadcaster(broadcasterId) {
     wsConnection = new WebSocket(`${protocol}//${window.location.host}?type=listener&broadcasterId=${broadcasterId}`);
     wsConnection.binaryType = 'arraybuffer';
 
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    await ensureAudioContext();
     nextPlayTime = 0;
     audioQueue = [];
     isPlaying = true;
+    lastAudioTime = Date.now();
 
     const playerHtml = `
       <div class="player-container" id="player-${broadcasterId}">
@@ -101,8 +125,8 @@ async function listenToBroadcaster(broadcasterId) {
               <p><i class="fas fa-map-marker-alt"></i> ${broadcaster.location || 'Unknown location'}</p>
             </div>
           </div>
-          <div style="display:flex;gap:8px;align-items:center">
-            <span class="listener-count" style="font-size:0.85rem;color:var(--gray)"><i class="fas fa-headphones"></i> <span id="listenerCountDisplay">${broadcaster.listeners || 0}</span></span>
+          <div class="player-controls-group">
+            <span class="listener-count"><i class="fas fa-headphones"></i> <span id="listenerCountDisplay">${broadcaster.listeners || 0}</span></span>
             <button onclick="shareBroadcast('${broadcasterId}')" class="btn btn-sm btn-share" title="Share this broadcast">
               <i class="fas fa-share-alt"></i>
             </button>
@@ -117,7 +141,11 @@ async function listenToBroadcaster(broadcasterId) {
         <div class="player-controls">
           <div class="now-playing">
             <i class="fas fa-broadcast-tower pulse-dot"></i>
-            <span>Now Playing</span>
+            <span id="nowPlayingStatus">Live</span>
+          </div>
+          <div class="audio-quality-indicator" id="audioQualityIndicator">
+            <i class="fas fa-wifi"></i>
+            <span>Connected</span>
           </div>
         </div>
       </div>
@@ -129,12 +157,12 @@ async function listenToBroadcaster(broadcasterId) {
     container.insertAdjacentHTML('beforebegin', playerHtml);
 
     wsConnection.onmessage = (e) => {
-      // Handle JSON control messages
       if (typeof e.data === 'string') {
         try {
           const msg = JSON.parse(e.data);
           if (msg.type === 'broadcaster_live') {
-            console.log('Broadcaster is back live');
+            const statusEl = document.getElementById('nowPlayingStatus');
+            if (statusEl) statusEl.textContent = 'Live';
           }
           if (msg.type === 'listener_count') {
             const el = document.getElementById('listenerCountDisplay');
@@ -145,6 +173,8 @@ async function listenToBroadcaster(broadcasterId) {
       }
 
       if (!(e.data instanceof ArrayBuffer)) return;
+
+      lastAudioTime = Date.now();
 
       try {
         const view = new DataView(e.data);
@@ -159,7 +189,9 @@ async function listenToBroadcaster(broadcasterId) {
           float32[i] = int16 / (int16 < 0 ? 0x8000 : 0x7FFF);
         }
 
-        const audioBuffer = audioContext.createBuffer(1, numSamples, sampleRate || audioContext.sampleRate);
+        const ctx = audioContext;
+        if (!ctx) return;
+        const audioBuffer = ctx.createBuffer(1, numSamples, sampleRate || ctx.sampleRate);
         audioBuffer.getChannelData(0).set(float32);
 
         scheduleBuffer(audioBuffer);
@@ -169,8 +201,15 @@ async function listenToBroadcaster(broadcasterId) {
     };
 
     wsConnection.onclose = () => {
-      console.log('Disconnected from broadcaster');
-      isPlaying = false;
+      if (currentBroadcasterId === broadcasterId) {
+        const statusEl = document.getElementById('nowPlayingStatus');
+        if (statusEl) statusEl.textContent = 'Disconnected';
+        const qualityEl = document.getElementById('audioQualityIndicator');
+        if (qualityEl) {
+          qualityEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i><span>Reconnecting...</span>';
+        }
+        scheduleReconnect(broadcasterId);
+      }
     };
 
     wsConnection.onerror = (err) => {
@@ -179,30 +218,91 @@ async function listenToBroadcaster(broadcasterId) {
 
     visualizePlayer(broadcasterId);
 
+    startAudioMonitor();
+
   } catch (error) {
     console.error('Error listening to broadcaster:', error);
     alert('Could not connect to broadcaster');
   }
 }
 
-function scheduleBuffer(audioBuffer) {
-  const now = audioContext.currentTime;
+function startAudioMonitor() {
+  if (audioSilenceTimer) clearInterval(audioSilenceTimer);
+  audioSilenceTimer = setInterval(() => {
+    if (!isPlaying) {
+      clearInterval(audioSilenceTimer);
+      audioSilenceTimer = null;
+      return;
+    }
+    const now = Date.now();
+    if (now - lastAudioTime > 3000) {
+      const qualityEl = document.getElementById('audioQualityIndicator');
+      if (qualityEl) {
+        qualityEl.innerHTML = '<i class="fas fa-exclamation-triangle"></i><span>Buffering...</span>';
+      }
+      if (audioContext && audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+    } else {
+      const qualityEl = document.getElementById('audioQualityIndicator');
+      if (qualityEl && wsConnection && wsConnection.readyState === WebSocket.OPEN) {
+        qualityEl.innerHTML = '<i class="fas fa-wifi"></i><span>Connected</span>';
+      }
+    }
+  }, 1000);
+}
 
-  // If nextPlayTime is too far ahead (gap from transition), reset it
-  if (nextPlayTime > now + 0.3) {
+function scheduleReconnect(broadcasterId) {
+  if (reconnectTimer) clearTimeout(reconnectTimer);
+  reconnectTimer = setTimeout(async () => {
+    if (!currentBroadcasterId) return;
+    try {
+      const res = await fetch('/api/live');
+      const data = await res.json();
+      const broadcaster = data.broadcasters.find(b => b.id == broadcasterId);
+      if (broadcaster) {
+        currentBroadcasterId = null;
+        if (wsConnection) {
+          wsConnection.onclose = null;
+          wsConnection.close();
+        }
+        listenToBroadcaster(broadcasterId);
+      }
+    } catch (e) {}
+  }, 2000);
+}
+
+function scheduleBuffer(audioBuffer) {
+  const ctx = audioContext;
+  if (!ctx) return;
+
+  const now = ctx.currentTime;
+  const duration = audioBuffer.duration;
+
+  if (nextPlayTime > now + 0.5) {
     nextPlayTime = now + 0.05;
   }
 
   if (nextPlayTime < now) {
-    nextPlayTime = now + 0.05;
+    if (now - nextPlayTime > 0.1) {
+      nextPlayTime = now + 0.02;
+    } else {
+      nextPlayTime = now;
+    }
   }
 
-  const source = audioContext.createBufferSource();
+  const source = ctx.createBufferSource();
   source.buffer = audioBuffer;
-  source.connect(audioContext.destination);
+
+  const gainNode = ctx.createGain();
+  gainNode.gain.value = 1;
+
+  source.connect(gainNode);
+  gainNode.connect(ctx.destination);
+
   source.start(nextPlayTime);
 
-  nextPlayTime += audioBuffer.duration;
+  nextPlayTime += duration;
 }
 
 function stopListening(broadcasterId) {
@@ -214,7 +314,18 @@ function stopListening(broadcasterId) {
   audioQueue = [];
   nextPlayTime = 0;
 
+  if (reconnectTimer) {
+    clearTimeout(reconnectTimer);
+    reconnectTimer = null;
+  }
+
+  if (audioSilenceTimer) {
+    clearInterval(audioSilenceTimer);
+    audioSilenceTimer = null;
+  }
+
   if (wsConnection) {
+    wsConnection.onclose = null;
     wsConnection.close();
     wsConnection = null;
   }
@@ -240,20 +351,26 @@ function visualizePlayer(broadcasterId) {
   const canvas = document.getElementById(`playerCanvas-${broadcasterId}`);
   if (!canvas) return;
 
+  canvas.width = canvas.offsetWidth * 2;
+  canvas.height = canvas.offsetHeight * 2;
+
   const ctx = canvas.getContext('2d');
-  const bars = 50;
+  const bars = 64;
 
   function draw() {
-    if (!isPlaying) return;
+    if (!isPlaying) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      return;
+    }
     requestAnimationFrame(draw);
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const barWidth = canvas.width / bars - 2;
+    const barWidth = (canvas.width / bars) - 2;
+    const time = Date.now() / 1000;
 
     for (let i = 0; i < bars; i++) {
-      const barHeight = Math.random() * canvas.height * 0.8;
+      const barHeight = (Math.sin(time * 4 + i * 0.3) * 0.3 + 0.5 + Math.random() * 0.2) * canvas.height * 0.8;
 
       const gradient = ctx.createLinearGradient(0, canvas.height, 0, canvas.height - barHeight);
       gradient.addColorStop(0, '#ff6b35');

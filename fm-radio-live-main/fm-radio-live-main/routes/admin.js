@@ -76,6 +76,29 @@ router.delete('/users/:id', verifyAdmin, async (req, res) => {
   }
 });
 
+// Reset user password
+router.put('/users/:id/reset-password', verifyAdmin, async (req, res) => {
+  try {
+    const { newPassword } = req.body;
+    if (!newPassword || newPassword.length < 3) {
+      return res.status(400).json({ error: 'Password must be at least 3 characters' });
+    }
+    const db = await getDb();
+    const user = db.get('SELECT id, role FROM users WHERE id = ?', [req.params.id]);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    if (user.role === 'admin' && user.id != req.user.id) {
+      return res.status(403).json({ error: 'Cannot reset another admin\'s password' });
+    }
+    const hashedPassword = bcrypt.hashSync(newPassword, 10);
+    db.run('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, req.params.id]);
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 // Get broadcast stats
 router.get('/stats', verifyAdmin, async (req, res) => {
   try {

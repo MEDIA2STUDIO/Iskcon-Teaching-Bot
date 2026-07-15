@@ -110,16 +110,27 @@ wss.on('connection', (ws, req) => {
     ws.on('message', (data) => {
       const broadcaster = broadcasters.get(userId);
       if (broadcaster) {
+        const msg = JSON.stringify({ type: 'listener_count', count: broadcaster.listeners.size });
         broadcaster.listeners.forEach(listenerWs => {
           if (listenerWs.readyState === WebSocket.OPEN) {
             listenerWs.send(data);
+            try { listenerWs.send(msg); } catch(e) {}
           }
         });
       }
     });
     ws.on('close', () => {
+      const migratedListeners = new Set();
+      const broadcaster = broadcasters.get(userId);
+      if (broadcaster) {
+        broadcaster.listeners.forEach(l => {
+          if (l.readyState === WebSocket.OPEN) {
+            migratedListeners.add(l);
+          }
+        });
+      }
       broadcasters.delete(userId);
-      console.log(`Broadcaster ${userId} disconnected`);
+      console.log(`Broadcaster ${userId} disconnected, migrating ${migratedListeners.size} listeners`);
 
       // Notify frontend
       broadcastToFrontend({
@@ -135,9 +146,20 @@ wss.on('connection', (ws, req) => {
         const pb = new PersistentBroadcast(userId, cachedPlaylist, wss);
         pb.start();
 
-        // Re-attach any listeners that were connected to this broadcaster
+        migratedListeners.forEach(listenerWs => {
+          if (listenerWs.readyState === WebSocket.OPEN) {
+            pb.addListener(listenerWs);
+            try {
+              listenerWs.send(JSON.stringify({
+                type: 'broadcaster_live', userId
+              }));
+            } catch(e) {}
+          }
+        });
+
+        // Also check wss.clients for any additional listeners
         wss.clients.forEach(client => {
-          if (client.readyState === WebSocket.OPEN && client.broadcasterId == userId) {
+          if (client.readyState === WebSocket.OPEN && client.broadcasterId == userId && !migratedListeners.has(client)) {
             pb.addListener(client);
           }
         });
@@ -149,6 +171,11 @@ wss.on('connection', (ws, req) => {
       } else {
         console.log(`No saved playlist for user ${userId}, broadcast ended`);
         // No playlist saved → mark offline
+        migratedListeners.forEach(l => {
+          if (l.readyState === WebSocket.OPEN) {
+            try { l.close(); } catch(e) {}
+          }
+        });
         getDb().then(db => {
           db.run('UPDATE users SET is_live = 0 WHERE id = ?', [userId]);
           db.run("UPDATE broadcasts SET status = 'ended', ended_at = CURRENT_TIMESTAMP WHERE user_id = ? AND status = 'live'", [userId]);

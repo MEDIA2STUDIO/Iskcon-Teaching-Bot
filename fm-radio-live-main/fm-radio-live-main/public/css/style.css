@@ -1044,6 +1044,25 @@ body {
   padding: 2rem 0;
 }
 
+.sidebar-header-mobile {
+  display: none;
+  padding: 0 1.5rem 1rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  margin-bottom: 0.5rem;
+}
+
+.admin-sidebar-toggle {
+  display: none !important;
+}
+
+.admin-navbar .nav-brand {
+  font-size: 1.2rem;
+}
+
 .sidebar-menu {
   display: flex;
   flex-direction: column;
@@ -1910,6 +1929,44 @@ footer {
   border-color: var(--danger) !important;
 }
 
+/* Better touch targets for range sliders on mobile */
+input[type="range"] {
+  touch-action: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+  border: none;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--primary);
+  cursor: pointer;
+  border: none;
+}
+
+/* Audio quality indicator */
+.audio-quality-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: var(--success);
+  margin-top: 0.5rem;
+}
+
+.audio-quality-indicator i {
+  font-size: 0.7rem;
+}
+
 /* ============ Responsive additions ============ */
 @media (max-width: 768px) {
   .studio-tabs {
@@ -2006,6 +2063,12 @@ footer {
 
   .nav-links.active {
     display: flex;
+    animation: fadeInDown 0.2s ease;
+  }
+
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   .navbar {
@@ -2014,6 +2077,10 @@ footer {
 
   .nav-brand {
     font-size: 1.2rem;
+  }
+
+  .listen-container .nav-links.active {
+    top: 56px;
   }
 
   .hero {
@@ -2092,7 +2159,7 @@ footer {
 
   .broadcast-container {
     grid-template-columns: 1fr;
-    padding: 1rem;
+    padding: 0.75rem;
   }
 
   .broadcast-panel {
@@ -2134,12 +2201,28 @@ footer {
   .admin-sidebar.mobile-open {
     display: block;
     position: fixed;
-    top: 60px;
+    top: 0;
     left: 0;
     bottom: 0;
-    width: 250px;
-    z-index: 99;
+    width: 280px;
+    z-index: 999;
     background: var(--secondary);
+    padding-top: 1rem;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.5);
+    animation: slideInLeft 0.2s ease;
+  }
+
+  @keyframes slideInLeft {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+  }
+
+  .sidebar-header-mobile {
+    display: flex;
+  }
+
+  .admin-sidebar-toggle {
+    display: inline-flex !important;
   }
 
   .admin-content {
@@ -2256,6 +2339,19 @@ footer {
 
   .player-broadcaster {
     flex-direction: column;
+  }
+
+  .player-controls-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .player-controls-group .btn {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.8rem;
   }
 
   .broadcaster-card {

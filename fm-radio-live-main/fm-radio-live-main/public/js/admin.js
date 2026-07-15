@@ -1,4 +1,13 @@
 // Admin Dashboard
+function toggleAdminSidebar() {
+  const sidebar = document.getElementById('adminSidebar');
+  sidebar.classList.toggle('mobile-open');
+}
+
+function toggleMobileMenu() {
+  document.querySelector('.nav-links').classList.toggle('active');
+}
+
 async function init() {
   await loadStats();
   await loadUsers();
@@ -53,6 +62,11 @@ async function loadUsers() {
               <i class="fas fa-trash"></i>
             </button>
           ` : ''}
+        </td>
+        <td>
+          <button onclick="resetPassword(${user.id})" class="btn btn-sm" style="background:var(--warning);color:#000">
+            <i class="fas fa-key"></i> Reset
+          </button>
         </td>
       </tr>
     `).join('');
@@ -130,6 +144,27 @@ document.getElementById('createUserForm')?.addEventListener('submit', async (e) 
     errorDiv.style.display = 'block';
   }
 });
+
+async function resetPassword(userId) {
+  const newPassword = prompt('Enter new password for user (min 3 characters):');
+  if (!newPassword || newPassword.length < 3) return;
+  if (!confirm('Reset password for user #' + userId + '?')) return;
+  try {
+    const res = await fetch(`/api/admin/users/${userId}/reset-password`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ newPassword })
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert('Password reset successful!');
+    } else {
+      alert('Error: ' + (data.error || 'Failed to reset password'));
+    }
+  } catch (error) {
+    alert('Server error');
+  }
+}
 
 async function deleteUser(userId) {
   if (!confirm('Are you sure you want to delete this user?')) return;
