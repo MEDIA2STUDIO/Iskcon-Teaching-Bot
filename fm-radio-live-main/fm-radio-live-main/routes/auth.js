@@ -3,7 +3,6 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { getDb } = require('../database');
 const { JWT_SECRET, verifyToken } = require('../middleware/auth');
-const activeSessions = require('../session-store');
 
 const router = express.Router();
 
@@ -38,7 +37,7 @@ router.post('/signup', async (req, res) => {
       { expiresIn: '7d' }
     );
 
-    res.cookie('token', token, { httpOnly: true, sameSite: 'lax', maxAge: 7 * 24 * 60 * 60 * 1000 });
+    res.cookie('token', token, { httpOnly: true, sameSite: 'lax' });
     res.json({ success: true, token, user: { id: userId, username, role: 'broadcaster' } });
   } catch (error) {
     console.error('Signup error:', error.message, error.stack);
@@ -70,24 +69,13 @@ router.post('/login', async (req, res) => {
       return res.status(403).json({ error: 'Account is disabled' });
     }
 
-    // Session enforcement: non-admin users only
-    const userIdStr = String(user.id);
-    if (user.role !== 'admin' && activeSessions.has(userIdStr)) {
-      return res.status(409).json({ error: 'Already logged in from another browser. Close that session first.' });
-    }
-
     const token = jwt.sign(
       { id: user.id, username: user.username, role: user.role },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
 
-    // Track session for non-admin users
-    if (user.role !== 'admin') {
-      activeSessions.set(userIdStr, { token, loginTime: Date.now() });
-    }
-
-    res.cookie('token', token, { httpOnly: true, sameSite: 'lax', maxAge: 7 * 24 * 60 * 60 * 1000 });
+    res.cookie('token', token, { httpOnly: true, sameSite: 'lax' });
     res.json({
       success: true,
       token,
@@ -101,16 +89,6 @@ router.post('/login', async (req, res) => {
 
 // Logout
 router.post('/logout', (req, res) => {
-  // Clear session tracking if token exists
-  const token = req.cookies?.token;
-  if (token) {
-    try {
-      const decoded = jwt.verify(token, JWT_SECRET);
-      if (decoded.role !== 'admin') {
-        activeSessions.delete(String(decoded.id));
-      }
-    } catch (_) {}
-  }
   res.clearCookie('token');
   res.json({ success: true });
 });
