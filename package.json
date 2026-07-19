@@ -6,6 +6,23 @@
   "scripts": {
     "start": "node server.js"
   },
-  "keywords": ["bhagavad-gita", "iskcon", "ai"],
-  "license": "MIT"
+  "keywords": [
+    "bhagavad-gita",
+    "iskcon",
+    "ai"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MEDIA2STUDIO/Iskcon-Teaching-Bot.git"
+  },
+  "author": "",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/MEDIA2STUDIO/Iskcon-Teaching-Bot/issues"
+  },
+  "homepage": "https://github.com/MEDIA2STUDIO/Iskcon-Teaching-Bot#readme",
+  "dependencies": {
+    "cheerio": "^1.2.0"
+  }
 }

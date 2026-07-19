@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 const PORT = process.env.PORT || 10000;
-const PUBLIC_DIR = path.join(__dirname, 'bhagavad-gita-ai');
+const PUBLIC_DIR = path.join(__dirname, 'public');
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
