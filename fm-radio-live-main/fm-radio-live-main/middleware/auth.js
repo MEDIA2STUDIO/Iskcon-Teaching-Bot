@@ -15,6 +15,7 @@ function verifyToken(req, res, next) {
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded;
+    req.token = token;
     next();
   } catch (error) {
     if (req.path.startsWith('/api/')) {

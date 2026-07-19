@@ -3,10 +3,10 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { getDb } = require('../database');
 const { JWT_SECRET, verifyToken } = require('../middleware/auth');
+const { isSessionAlive, touchSession, removeSession } = require('../session-store');
 
 const router = express.Router();
 
-// Signup
 router.post('/signup', async (req, res) => {
   try {
     const { username, email, password, displayName, location } = req.body;
@@ -45,7 +45,6 @@ router.post('/signup', async (req, res) => {
   }
 });
 
-// Login
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
@@ -69,11 +68,19 @@ router.post('/login', async (req, res) => {
       return res.status(403).json({ error: 'Account is disabled' });
     }
 
+    if (user.role !== 'admin' && isSessionAlive(String(user.id))) {
+      return res.status(409).json({ error: 'Already logged in from another browser. Close that session first.' });
+    }
+
     const token = jwt.sign(
       { id: user.id, username: user.username, role: user.role },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
+
+    if (user.role !== 'admin') {
+      touchSession(String(user.id), token);
+    }
 
     res.cookie('token', token, { httpOnly: true, sameSite: 'lax' });
     res.json({
@@ -87,19 +94,29 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// Logout
 router.post('/logout', (req, res) => {
+  const token = req.cookies?.token;
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      if (decoded.role !== 'admin') {
+        removeSession(String(decoded.id));
+      }
+    } catch (_) {}
+  }
   res.clearCookie('token');
   res.json({ success: true });
 });
 
-// Get current user
 router.get('/me', verifyToken, async (req, res) => {
   try {
     const db = await getDb();
     const user = db.get('SELECT id, username, email, display_name, location, role, is_live FROM users WHERE id = ?', [req.user.id]);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
+    }
+    if (user.role !== 'admin') {
+      touchSession(String(user.id), req.token);
     }
     res.json({ user });
   } catch (error) {
