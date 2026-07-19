@@ -18,12 +18,18 @@
 
   <!-- Sidebar -->
   <aside class="sidebar">
-    <img src="krishna.svg" alt="கிருஷ்ணர்" class="krishna-img">
-    <div class="title-section">
-      <h1>🕉 கீதை AI</h1>
-      <div class="sub">பகவத் கீதை ஞான சாட்பாட்</div>
+    <div class="sidebar-brand">பகவத்<br>கீதை</div>
+    <div class="sidebar-sub">ஞான சாட்பாட்</div>
+    <div class="sidebar-verse-count">700 வசனங்கள்</div>
+
+    <div class="sidebar-bottom">
+      <button class="btn-translate" id="translateBtn" onclick="App.toggleTranslate()">
+        <span id="translateIcon">🌐</span>
+        <span id="translateLabel">மொழிபெயர்ப்பு</span>
+      </button>
+      <div id="google_translate_element" style="display:none;"></div>
+      <div class="sidebar-source">பிரபுபாதர்</div>
     </div>
-    <div class="verse-count">700 வசனங்கள் • பிரபுபாதர்</div>
   </aside>
 
   <!-- Main -->

@@ -290,4 +290,40 @@ const App = {
   }
 };
 
+  // Translate
+  translateLoaded: false,
+
+  toggleTranslate() {
+    const el = document.getElementById('google_translate_element');
+    const btn = document.getElementById('translateBtn');
+
+    if (el.style.display !== 'block') {
+      el.style.display = 'block';
+      btn.classList.add('active');
+      document.getElementById('translateLabel').textContent = 'மொழி தேர்வு';
+      if (!this.translateLoaded) this.loadGoogleTranslate();
+    } else {
+      el.style.display = 'none';
+      btn.classList.remove('active');
+      document.getElementById('translateLabel').textContent = 'மொழிபெயர்ப்பு';
+    }
+  },
+
+  loadGoogleTranslate() {
+    this.translateLoaded = true;
+    window.googleTranslateElementInit = () => {
+      new google.translate.TranslateElement({
+        pageLanguage: 'ta',
+        includedLanguages: 'ta,en,hi,bn,gu,kn,ml,mr,or,pa,te,ur,ar,es,fr,de,ja,zh-CN,ru,pt,id,th,my,km,si,ne',
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false,
+        multilanguagePage: true
+      }, 'google_translate_element');
+    };
+    const s = document.createElement('script');
+    s.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
+    document.body.appendChild(s);
+  }
+};
+
 document.addEventListener('DOMContentLoaded', () => App.init());
