@@ -209,12 +209,16 @@ body {
   padding: 8px;
 }
 
-/* Google Translate global override */
+/* Google Translate global override — complete hide */
 .goog-te-banner-frame { display: none !important; }
 body > .skiptranslate { display: none !important; }
 .goog-te-gadget img { display: none !important; }
 .goog-te-gadget { font-size: 12px !important; }
 .skiptranslate.goog-te-gadget { display: none !important; }
+#google_translate_element { display: none !important; }
+.goog-te-gadget .goog-te-combo { margin: 0 !important; }
+iframe.goog-te-banner-frame, .goog-te-menu-frame { display: none !important; }
+body { top: 0 !important; }
 
 /* ─── Messages ─── */
 .messages-area { flex: 1; overflow-y: auto; padding: 20px 24px; scroll-behavior: smooth; }
