@@ -56,6 +56,10 @@ async function init() {
     } else { window.location.href = '/login'; }
   } catch (e) {}
 
+  setInterval(() => {
+    fetch('/api/auth/me').catch(() => {});
+  }, 60000);
+
   audioEls[0] = document.getElementById('playlistAudio1');
   audioEls[1] = document.getElementById('playlistAudio2');
 

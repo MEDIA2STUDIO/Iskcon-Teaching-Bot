@@ -1,5 +1,5 @@
 const activeSessions = new Map();
-const SESSION_TIMEOUT = 15000;
+const SESSION_TIMEOUT = 300000;
 
 function isSessionAlive(userId) {
   const session = activeSessions.get(userId);
