@@ -169,71 +169,64 @@ body {
 
 /* Verse Card in Messages */
 .verse-result {
-  margin-top: 10px;
-  padding: 12px 14px;
+  margin-top: 12px;
+  padding: 16px;
   background: #fff;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   border-left: 4px solid var(--saffron);
 }
 
+.verse-result .sanskrit {
+  font-size: 18px;
+  color: #5D4037;
+  font-style: italic;
+  line-height: 1.8;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  background: #FFF8F0;
+  border-radius: 6px;
+  font-family: 'Noto Sans Tamil', 'Nirmala UI', serif;
+  text-align: center;
+  word-spacing: 2px;
+}
+
 .verse-result .ref {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--saffron);
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-  margin-bottom: 4px;
-}
-
-.verse-result .ref .ch { color: var(--red); }
-.verse-result .ref .vs { color: var(--red); }
-
-.verse-result .chapter-name {
-  font-size: 11px;
-  color: var(--text-muted);
-  margin-bottom: 6px;
-}
-
-.verse-result .sanskrit {
-  font-size: 16px;
-  color: var(--text);
-  font-style: italic;
-  margin-bottom: 8px;
-  padding: 8px 0;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
   border-bottom: 1px solid var(--border);
-  font-family: 'Noto Sans Tamil', serif;
 }
 
 .verse-result .translation-label {
-  font-size: 11px;
-  color: var(--gold);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 2px;
+  font-size: 12px;
+  color: var(--red);
+  font-weight: 700;
+  margin-bottom: 4px;
 }
 
 .verse-result .translation {
   font-size: 14px;
   color: var(--text);
-  line-height: 1.7;
+  line-height: 1.8;
 }
 
 .verse-result .purport-label {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--gold);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-top: 10px;
-  margin-bottom: 2px;
+  font-weight: 700;
+  margin-top: 12px;
+  margin-bottom: 4px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
 }
 
 .verse-result .purport {
   font-size: 13px;
   color: var(--text-muted);
-  line-height: 1.6;
+  line-height: 1.7;
 }
 
 /* Typing indicator */
