@@ -1,0 +1,11 @@
+{
+  "name": "iskcon-teaching-bot",
+  "version": "1.0.0",
+  "description": "Bhagavad Gita AI - Gnana Jackpot",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": ["bhagavad-gita", "iskcon", "ai"],
+  "license": "MIT"
+}
