@@ -31,6 +31,7 @@ const App = {
   bindEvents() {
     document.getElementById('sendBtn').addEventListener('click', () => this.sendMessage());
     document.getElementById('micBtn').addEventListener('click', () => this.toggleMic());
+    document.getElementById('translateBtn').addEventListener('click', () => this.toggleTranslate());
     document.getElementById('chatInput').addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -287,10 +288,8 @@ const App = {
     btn.classList.remove('listening');
     btn.textContent = '🎤';
     if (this.recognition) { try { this.recognition.stop(); } catch (e) {} }
-  }
-};
+  },
 
-  // Translate
   translateLoaded: false,
 
   toggleTranslate() {
@@ -311,6 +310,7 @@ const App = {
 
   loadGoogleTranslate() {
     this.translateLoaded = true;
+    const self = this;
     window.googleTranslateElementInit = () => {
       new google.translate.TranslateElement({
         pageLanguage: 'ta',
