@@ -3,42 +3,51 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>பகவத் கீதை AI — உங்கள் ஞான துணை</title>
+  <title>கீதை AI — பகவத் கீதை ஞான சாட்பாட்</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🕉</text></svg>">
 </head>
 <body>
 
-<!-- Header -->
-<header class="header">
-  <h1>🙏 பகவத் கீதை AI</h1>
-  <div class="subtitle">உங்கள் கேள்விக்கு கீதை பதில் சொல்கிறது</div>
-</header>
-
-<!-- Data Loading -->
 <div id="dataLoading" class="data-loading">
   <div class="spinner"></div>
   <p>பகவத் கீதை தரவுகள் ஏற்றப்படுகின்றன...</p>
 </div>
 
-<!-- Main App -->
-<div id="appMain" style="display:none;">
-  <div class="chat-container" id="chatContainer">
-    <div id="messages"></div>
-  </div>
+<div id="appMain" class="app" style="display:none;">
 
-  <!-- Input Area -->
-  <div class="input-area">
-    <div class="input-inner">
-      <input
-        type="text"
-        id="chatInput"
-        placeholder="உங்கள் கேள்வியை இங்கே எழுதுங்கள்..."
-        autocomplete="off"
-      >
-      <button class="btn-mic" id="micBtn" title="குரல் மூலம் கேளுங்கள்">🎤</button>
-      <button class="btn-send" id="sendBtn" title="அனுப்பு">➤</button>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <img src="krishna.svg" alt="கிருஷ்ணர்" class="krishna-img">
+    <div class="title-section">
+      <h1>🕉 கீதை AI</h1>
+      <div class="sub">பகவத் கீதை ஞான சாட்பாட்</div>
     </div>
+    <div class="verse-count">700 வசனங்கள் • பிரபுபாதர்</div>
+  </aside>
+
+  <!-- Main -->
+  <div class="main-content">
+    
+    <!-- Header -->
+    <div class="chat-header">
+      <span class="status-dot"></span>
+      <span class="status-text"><span>கீதை AI</span> • உங்கள் கேள்விக்கு பதில் சொல்ல தயார்</span>
+    </div>
+
+    <!-- Messages -->
+    <div class="messages-area" id="messages"></div>
+
+    <!-- Input -->
+    <div class="input-area">
+      <div class="input-inner">
+        <input type="text" id="chatInput" placeholder="உங்கள் கேள்வியை இங்கே எழுதுங்கள்..." autocomplete="off">
+        <button class="btn-mic" id="micBtn" title="குரல் மூலம் கேளுங்கள்">🎤</button>
+        <button class="btn-send" id="sendBtn" title="அனுப்பு">➤</button>
+      </div>
+      <div class="info-banner">AI தவறு செய்ய வாய்ப்புள்ளது. ஆழமான புரிதலுக்கு குருவை அணுகவும்.</div>
+    </div>
+
   </div>
 </div>
 
