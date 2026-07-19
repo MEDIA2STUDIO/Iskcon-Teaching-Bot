@@ -23,11 +23,6 @@
     <div class="sidebar-verse-count">700 வசனங்கள்</div>
 
     <div class="sidebar-bottom">
-      <button class="btn-translate" id="translateBtn">
-        <span id="translateIcon">🌐</span>
-        <span id="translateLabel">மொழிபெயர்ப்பு</span>
-      </button>
-      <div id="google_translate_element" style="display:none;"></div>
       <div class="sidebar-source">பிரபுபாதர்</div>
     </div>
   </aside>
@@ -37,9 +32,47 @@
     
     <!-- Header -->
     <div class="chat-header">
-      <span class="status-dot"></span>
-      <span class="status-text"><span>கீதை AI</span> • உங்கள் கேள்விக்கு பதில் சொல்ல தயார்</span>
+      <div class="header-left">
+        <span class="status-dot"></span>
+        <span class="status-text"><span>கீதை AI</span> • உங்கள் கேள்விக்கு பதில் சொல்ல தயார்</span>
+      </div>
+      <div class="header-right">
+        <div class="header-translate">
+          <button class="btn-header-translate" id="translateBtn" title="மொழிபெயர்ப்பு">
+            <span id="translateIcon">🌐</span>
+            <span id="translateLabel">மொழிபெயர்ப்பு</span>
+          </button>
+          <div id="langPanel" class="lang-panel" style="display:none;">
+            <select id="langSelect" class="lang-select">
+              <option value="">— மொழி தேர்வு —</option>
+              <option value="ta">தமிழ்</option>
+              <option value="en">English</option>
+              <option value="hi">हिन्दी</option>
+              <option value="bn">বাংলা</option>
+              <option value="gu">ગુજરાતી</option>
+              <option value="kn">ಕನ್ನಡ</option>
+              <option value="ml">മലയാളം</option>
+              <option value="mr">मराठी</option>
+              <option value="or">ଓଡ଼ିଆ</option>
+              <option value="pa">ਪੰਜਾਬੀ</option>
+              <option value="te">తెలుగు</option>
+              <option value="ur">اردو</option>
+              <option value="ar">العربية</option>
+              <option value="es">Español</option>
+              <option value="fr">Français</option>
+              <option value="de">Deutsch</option>
+              <option value="ja">日本語</option>
+              <option value="zh-CN">中文</option>
+              <option value="ru">Русский</option>
+              <option value="pt">Português</option>
+              <option value="id">Bahasa</option>
+              <option value="th">ไทย</option>
+            </select>
+          </div>
+        </div>
+      </div>
     </div>
+    <div id="google_translate_element" style="display:none;"></div>
 
     <!-- Messages -->
     <div class="messages-area" id="messages"></div>

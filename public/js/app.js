@@ -5,10 +5,13 @@ const App = {
   isProcessing: false,
   messageCount: 0,
 
+  currentLang: localStorage.getItem('gita-lang') || 'ta',
+
   async init() {
     await this.loadData();
     this.bindEvents();
     this.showWelcome();
+    this.initTranslate();
   },
 
   async loadData() {
@@ -292,37 +295,46 @@ const App = {
 
   translateLoaded: false,
 
-  toggleTranslate() {
-    const el = document.getElementById('google_translate_element');
-    const btn = document.getElementById('translateBtn');
-
-    if (el.style.display !== 'block') {
-      el.style.display = 'block';
-      btn.classList.add('active');
-      document.getElementById('translateLabel').textContent = 'மொழி தேர்வு';
-      if (!this.translateLoaded) this.loadGoogleTranslate();
-    } else {
-      el.style.display = 'none';
-      btn.classList.remove('active');
-      document.getElementById('translateLabel').textContent = 'மொழிபெயர்ப்பு';
-    }
-  },
-
-  loadGoogleTranslate() {
-    this.translateLoaded = true;
-    const self = this;
+  initTranslate() {
     window.googleTranslateElementInit = () => {
-      new google.translate.TranslateElement({
-        pageLanguage: 'ta',
-        includedLanguages: 'ta,en,hi,bn,gu,kn,ml,mr,or,pa,te,ur,ar,es,fr,de,ja,zh-CN,ru,pt,id,th,my,km,si,ne',
-        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
-        autoDisplay: false,
-        multilanguagePage: true
-      }, 'google_translate_element');
+      this.translateLoaded = true;
     };
     const s = document.createElement('script');
     s.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
     document.body.appendChild(s);
+  },
+
+  toggleTranslate() {
+    const panel = document.getElementById('langPanel');
+    const btn = document.getElementById('translateBtn');
+    const shown = panel.style.display === 'block';
+    panel.style.display = shown ? 'none' : 'block';
+    btn.classList.toggle('active', !shown);
+    document.getElementById('translateLabel').textContent = shown ? 'மொழிபெயர்ப்பு' : 'மொழி தேர்வு';
+    if (!shown) {
+      const sel = document.getElementById('langSelect');
+      sel.addEventListener('change', () => this.translateTo(sel.value));
+    }
+  },
+
+  translateTo(lang) {
+    if (!lang) return;
+    this.currentLang = lang;
+    localStorage.setItem('gita-lang', lang);
+    document.documentElement.lang = lang;
+    document.getElementById('langPanel').style.display = 'none';
+    document.getElementById('translateBtn').classList.remove('active');
+    document.getElementById('translateLabel').textContent = 'மொழிபெயர்ப்பு';
+
+    if (lang === 'ta') {
+      location.reload();
+      return;
+    }
+
+    const currentUrl = window.location.href;
+    const baseUrl = currentUrl.split('?')[0].split('#')[0];
+    const translateUrl = `https://translate.google.com/translate?hl=${lang}&sl=ta&tl=${lang}&u=${encodeURIComponent(baseUrl)}&sandbox=1`;
+    window.open(translateUrl, '_blank');
   }
 };
 
