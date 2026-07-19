@@ -35,6 +35,7 @@ const App = {
     document.getElementById('sendBtn').addEventListener('click', () => this.sendMessage());
     document.getElementById('micBtn').addEventListener('click', () => this.toggleMic());
     document.getElementById('translateBtn').addEventListener('click', () => this.toggleTranslate());
+    document.getElementById('langSelect').addEventListener('change', (e) => this.translateTo(e.target.value));
     document.getElementById('chatInput').addEventListener('keydown', (e) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
@@ -233,6 +234,7 @@ const App = {
     div.innerHTML = `<div class="avatar">${avatar}</div>${bubble}`;
     container.appendChild(div);
     this.scrollToBottom();
+    this.retranslate();
   },
 
   showTyping() {
@@ -296,12 +298,33 @@ const App = {
   translateLoaded: false,
 
   initTranslate() {
+    const self = this;
     window.googleTranslateElementInit = () => {
-      this.translateLoaded = true;
+      self.translateLoaded = true;
+      self.translateElement = new google.translate.TranslateElement({
+        pageLanguage: 'ta',
+        includedLanguages: 'ta,en,hi,bn,gu,kn,ml,mr,or,pa,te,ur,ar,es,fr,de,ja,zh-CN,ru,pt,id,th',
+        layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+        autoDisplay: false,
+        multilanguagePage: true
+      }, 'google_translate_element');
+      // Restore previous language
+      const prev = localStorage.getItem('gita-lang');
+      if (prev && prev !== 'ta') {
+        self.applyLang(prev);
+      }
     };
     const s = document.createElement('script');
     s.src = '//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit';
     document.body.appendChild(s);
+  },
+
+  applyLang(lang) {
+    const sel = document.querySelector('.goog-te-combo');
+    if (sel) {
+      sel.value = lang;
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+    }
   },
 
   toggleTranslate() {
@@ -311,10 +334,6 @@ const App = {
     panel.style.display = shown ? 'none' : 'block';
     btn.classList.toggle('active', !shown);
     document.getElementById('translateLabel').textContent = shown ? 'மொழிபெயர்ப்பு' : 'மொழி தேர்வு';
-    if (!shown) {
-      const sel = document.getElementById('langSelect');
-      sel.addEventListener('change', () => this.translateTo(sel.value));
-    }
   },
 
   translateTo(lang) {
@@ -331,10 +350,14 @@ const App = {
       return;
     }
 
-    const currentUrl = window.location.href;
-    const baseUrl = currentUrl.split('?')[0].split('#')[0];
-    const translateUrl = `https://translate.google.com/translate?hl=${lang}&sl=ta&tl=${lang}&u=${encodeURIComponent(baseUrl)}&sandbox=1`;
-    window.open(translateUrl, '_blank');
+    this.applyLang(lang);
+  },
+
+  retranslate() {
+    if (this.currentLang && this.currentLang !== 'ta') {
+      clearTimeout(this._retranslateTimer);
+      this._retranslateTimer = setTimeout(() => this.applyLang(this.currentLang), 300);
+    }
   }
 };
 
