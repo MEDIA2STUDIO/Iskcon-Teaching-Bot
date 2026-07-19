@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bhagavad Gita AI — ஞான ஜாக்பாட்</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+</head>
+<body>
+  <div class="bg-pattern"></div>
+
+  <div id="pageLoading" style="text-align:center;padding:80px 20px;color:#b8a88a;">
+    <div style="font-size:48px;margin-bottom:16px;">🕉</div>
+    <div class="spinner" style="margin:0 auto 16px;"></div>
+    <p style="font-size:14px;">பகவத் கீதை தரவுகள் ஏற்றப்படுகின்றன...</p>
+  </div>
+
+  <div id="appContent" style="display:none;">
+    <div class="container">
+      <!-- Header -->
+      <header class="header">
+        <div class="om-symbol">॥ ॐ ॥</div>
+        <h1>பகவத் கீதை AI</h1>
+        <p class="subtitle">
+          <span>ஞான ஜாக்பாட்</span> — உங்கள் கேள்விக்கு கீதை பதில் சொல்கிறது
+        </p>
+      </header>
+
+      <!-- Hare Krishna Mantra -->
+      <div class="mantra-section">
+        <div class="mantra-text">
+          ଜଗନ୍ନାଥ — ୧༡ ୧༡<br>
+          <span class="highlight">ஹரே கிருஷ்ண ஹரே கிருஷ்ண கிருஷ்ண கிருஷ்ண ஹரே ஹரே<br>
+          ஹரே ராம ஹரே ராம ராம ராம ஹரே ஹரே</span>
+        </div>
+        <button class="btn-mantra" id="mantraBtn" onclick="BGApp.toggleMantra()">
+          <span class="icon">▶</span> ஹரே கிருஷ்ணா மகா மந்திரம்
+        </button>
+      </div>
+
+      <!-- Search -->
+      <div class="search-section">
+        <label>🙏 உங்கள் கேள்வியை கேளுங்கள் — கீதை பதில் தரும்</label>
+        <div class="search-box">
+          <input
+            type="text"
+            id="questionInput"
+            placeholder="எ.கா: மனதை எப்படி கட்டுப்படுத்துவது? மரணத்திற்கு பின் என்ன?..."
+            autocomplete="off"
+          >
+          <button class="btn-ask" id="askBtn">🔍 கேள்</button>
+        </div>
+        <div class="suggestions" id="suggestions">
+          <button class="suggestion-chip" data-question="What is the purpose of life?">What is the purpose of life?</button>
+          <button class="suggestion-chip" data-question="How to control the mind?">How to control the mind?</button>
+          <button class="suggestion-chip" data-question="What happens after death?">What happens after death?</button>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <div class="loading-text">கீதையில் பதில் தேடுகிறது...</div>
+      </div>
+
+      <!-- Results -->
+      <div class="results" id="results">
+        <div class="result-count" id="resultCount"></div>
+        <div id="resultsContainer"></div>
+      </div>
+
+      <!-- No results -->
+      <div class="no-results" id="noResults">
+        <div class="icon">🔍</div>
+        <p>பொருந்தும் பதில்கள் எதுவும் கிடைக்கவில்லை.<br>
+        வேறு வார்த்தைகளில் கேள்வியை முயற்சிக்கவும்.</p>
+      </div>
+
+      <!-- Footer -->
+      <footer class="footer-info">
+        <p>
+          📖 Source: <a href="https://asitis.com/" target="_blank">Bhagavad Gita As It Is</a>
+          by A.C. Bhaktivedanta Swami Prabhupada
+        </p>
+        <p>
+          மொத்தம் <span id="totalVerses">—</span> வசனங்கள் • 
+          <span id="footerChapterCount">18</span> அத்தியாயங்கள்
+        </p>
+        <p style="margin-top:4px;font-size:11px;color:#665538;">
+          ஹரே கிருஷ்ணா 🙏
+        </p>
+      </footer>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    // Expose BGApp globally for inline onclick
+    window.BGApp = BGApp;
+  </script>
+</body>
+</html>

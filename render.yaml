@@ -1,7 +1,0 @@
-services:
-  - type: web
-    name: fm-live
-    env: node
-    rootDir: fm-radio-live-main/fm-radio-live-main
-    buildCommand: npm install
-    startCommand: node server.js
